@@ -15,7 +15,7 @@ Tensorflow Environment Setup
 	- eval $(docker-machine env tensorflow)
 
 * Running the Docker container from the TW AI Club repository
-	- docker run -d -p 8888:8888 -p 6006:6006 -v <your-path>/ml-fifth-division/notebooks/:/notebooks --name tensorflow gcr.io/tensorflow/tensorflow:1.0.0-py3
+	- docker run -d -p 8888:8888 -p 6006:6006 -v {your-path}/ml-fifth-division/notebooks/:/notebooks --name tensorflow gcr.io/tensorflow/tensorflow:1.0.0-py3
 
 * Go to: http://your-virtual-machine-ip:8888, and then you can do everything you want
 
