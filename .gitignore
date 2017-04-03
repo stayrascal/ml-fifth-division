@@ -2,3 +2,4 @@ tags
 **/.ipynb_checkpoints
 */data/*
 .idea
+.DS_Store
