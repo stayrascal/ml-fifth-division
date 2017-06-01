@@ -40,3 +40,89 @@ def get_param(page):
         h_encText = AES_encrypt(first_param, second_key, iv)
     h_encText = AES_encrypt(h_encText, second_key, iv)
     return h_encText
+
+def get_encSecKey():
+    encSecKey = "257348aecb5e556c066de214e531faadd1c55d814f9be95fd06d6bff9f4c7a41f831f6394d5a3fd2e3881736d94a02ca919d952872e7d0a50ebfa1769a7a62d512f5f1ca21aec60bc3819a9c3ffca5eca9a0dba6d6f7249b06f5965ecfff3695b54e1c28f3f624750ed39e7de08fc8493242e26dbc4484a01c76f739e135637c"
+    return encSecKey
+
+def AES_encrypt(text, key, iv):
+    pad = 16 - len(text) % 16
+    text = text + pad * chr(pad)
+    encryptor = AES.new(key, AES.MODE_CBC, iv)
+    encrypt_text = encryptor.encrypt(text)
+    encrypt_text = base64.b64encode(encrypt_text)
+    return encrypt_text
+
+def get_json(url, params, encSecKey):
+    data = {
+        "params":params,
+        "encSecKey": encSecKey
+    }
+    response = requests.post(url, headers=headers, data=data, proxies=proxies)
+    return response.content
+
+def get_hot_comments(url):
+    hot_comments_list = []
+    hot_comments_list.append(u"userId username headImgUrl commentTime totalPraise comment\n")
+    params = get_param(1)
+    encSecKey = get_encSecKey()
+    json_text = get_json(url, params, encSecKey)
+    json_dict = json.loads(json_text)
+    hot_comments = json_dict['hotComments']
+    print("There are %s hot comments" % len(hot_comments))
+    for item in hot_comments:
+        comment = item['content']
+        likedCount = item['likeCount']
+        comment_time = item['time'] 
+        userID = item['user']['userID'] 
+        nickname = item['user']['nickname'] 
+        avatarUrl = item['user']['avatarUrl'] 
+        comment_info = userID + " " + nickname + " " + avatarUrl + " " + comment_time + " " + likedCount + " " + comment + u"\n"
+        hot_comments_list.append(comment_info)
+    return hot_comments_list
+
+def get_all_comments(url):
+    all_comments_list = [] # 存放所有评论
+    all_comments_list.append(u"用户ID 用户昵称 用户头像地址 评论时间 点赞总数 评论内容\n") # 头部信息
+    params = get_params(1)
+    encSecKey = get_encSecKey()
+    json_text = get_json(url,params,encSecKey)
+    json_dict = json.loads(json_text)
+    comments_num = int(json_dict['total'])
+    if(comments_num % 20 == 0):
+        page = comments_num / 20
+    else:
+        page = int(comments_num / 20) + 1
+    print("共有%d页评论!" % page)
+    for i in range(page):  # 逐页抓取
+        params = get_params(i+1)
+        encSecKey = get_encSecKey()
+        json_text = get_json(url,params,encSecKey)
+        json_dict = json.loads(json_text)
+        if i == 0:
+            print("共有%d条评论!" % comments_num) # 全部评论总数
+        for item in json_dict['comments']:
+            comment = item['content'] # 评论内容
+            likedCount = item['likedCount'] # 点赞总数
+            comment_time = item['time'] # 评论时间(时间戳)
+            userID = item['user']['userId'] # 评论者id
+            nickname = item['user']['nickname'] # 昵称
+            avatarUrl = item['user']['avatarUrl'] # 头像地址
+            comment_info = unicode(userID) + u" " + nickname + u" " + avatarUrl + u" " + unicode(comment_time) + u" " + unicode(likedCount) + u" " + comment + u"\n"
+            all_comments_list.append(comment_info)
+        print("第%d页抓取完毕!" % (i+1))
+    return all_comments_list
+
+def save_to_file(list, filename):
+    with codecs.open(filename, 'a', encoding='utf-8') as f:
+        f.write(list)
+    print('Write to file successful!')
+
+if __name__ == "__main__":
+    start_time = time.time()
+    url = "http://music.163.com/weapi/v1/resource/comments/R_SO_4_186016/?csrf_token="
+    filename = u"晴天.txt"
+    all_comments_list = get_all_comments(url)
+    save_to_file(all_comments_list,filename)
+    end_time = time.time() #结束时间
+    print("程序耗时%f秒." % (end_time - start_time))
