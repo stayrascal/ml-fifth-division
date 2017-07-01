@@ -3,5 +3,6 @@ tags
 */data/*
 .idea
 .DS_Store
-
+*.p
+/__pycache__
 shan_notebooks/assignments/Style_Transfer/imagenet-vgg-verydeep-19.mat
