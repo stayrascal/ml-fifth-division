@@ -1,4 +1,4 @@
-import cPickle as pickle
+import pickle
 
 def load_pickle(file_path):
     data = None

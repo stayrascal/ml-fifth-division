@@ -7,7 +7,7 @@ image_rows = 420
 image_cols = 580
 
 _dir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '')
-data_path = os.path.join(_dir, '../raw')
+data_path = os.path.join(_dir, './raw')
 preprocess_path = os.path.join(_dir, 'np_data')
 img_train_path = os.path.join(preprocess_path, 'imgs_train.npy')
 img_train_mask_path = os.path.join(preprocess_path, 'imgs_mask_train.npy')
@@ -44,7 +44,7 @@ def get_patient_nums(string):
 
 def create_train_data():
     train_data_path = os.path.join(data_path, 'train')
-    images = filter((lambda image: 'mask' not in image), os.listdir(train_data_path))
+    images = list(filter((lambda image: 'mask' not in image), os.listdir(train_data_path)))
     total = len(images) 
 
     imgs = np.ndarray((total, 1, image_rows, image_cols), dtype=np.uint8)

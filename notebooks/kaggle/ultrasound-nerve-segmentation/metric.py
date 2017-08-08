@@ -28,9 +28,9 @@ def np_dice_coef(y_true, y_pred):
 def main():
     a = np.random.random((420,100))
     b = np.random.random((420,100))
-#    print a.flatten().shape
+#    print(a.flatten().shape)
     res =  np_dice_coef(a,b )
-    print res
+    print(res)
 
 
 if __name__ == '__main__':

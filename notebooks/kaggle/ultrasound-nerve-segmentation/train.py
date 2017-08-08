@@ -6,7 +6,7 @@ import numpy as np
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.image import flip_axis, random_channel_shift
-from keras.engine.training import slice_X
+from keras.engine.training import _slice_arrays
 from keras_plus import LearningRateDecay
 from u_model import get_unet, IMG_COLS as img_cols, IMG_ROWS as img_rows
 from data import load_train_data, load_test_data, load_patient_num
@@ -22,7 +22,7 @@ def preprocess(imgs, to_rows=None, to_cols=None):
         to_cols = img_cols
     imgs_p = np.ndarray((imgs.shape[0], imgs.shape[1], to_rows, to_cols), dtype=np.uint8)
     for i in range(imgs.shape[0]):
-        imgs_p[i, 0] = resize(imgs[i, 0], (to_cols, to_rows), preserve_range=True)
+        imgs_p[i, 0] = resize(imgs[i, 0], (to_rows, to_cols), preserve_range=True)
     # imgs_p = imgs_p[..., np.newaxis]
     return imgs_p
 
@@ -71,7 +71,7 @@ class Learner(object):
         return load_pickle(cls.valid_data_path)
     
     def _init_mean_std(self, data):
-        data = data.astype('float32')
+        data = np.array(data).astype('float32')
         self.mean, self.std = np.mean(data), np.std(data)
         self.save_meanstd()
         return data
@@ -81,9 +81,9 @@ class Learner(object):
 
     def standartize(self, array, to_float=False):
         if to_float:
-            array = array.astype('float32')
+            array = np.array(array).astype('float32')
         if self.mean is None or self.std is None:
-            raise ValueError, 'No mean/std is initialised'
+            raise ValueError('No mean/std is initialised')
         
         array -= self.mean
         array /= self.std
@@ -127,9 +127,12 @@ class Learner(object):
         print('Shuffle & split...')
         if shuffle:
             data, mask = cls.shuffle_train(data, mask)
-        split_at = int(len(data) * (1. - validation_split))
-        x_train, x_valid = (slice_X(data, 0, split_at), slice_X(data, split_at))
-        y_train, y_valid = (slice_X(mask, 0, split_at), slice_X(mask, split_at))
+        # data: (5635, 1, 80, 112), mask: (5635, 1, 80, 112)
+        split_at = int(len(data) * (1. - validation_split)) # 4058
+        x_train, x_valid = (data[0:split_at], data[split_at:])
+        # x_train, x_valid = (_slice_arrays(data, 0, split_at), _slice_arrays(data, split_at))
+        y_train, y_valid = (mask[0:split_at], mask[split_at:])
+        # y_train, y_valid = (_slice_arrays(mask, 0, split_at), _slice_arrays(mask, split_at))
         cls.save_valid_idx(range(len(data))[split_at:])
         return (x_train, y_train), (x_valid, y_valid)
         
@@ -150,7 +153,7 @@ class Learner(object):
     def __pretrain_model_load(self, model, pretrained_path):
         if pretrained_path is not None:
             if not os.path.exists(pretrained_path):
-                raise ValueError, 'No such pre-trained path exists'
+                raise ValueError('No such pre-trained path exists')
             model.load_weights(pretrained_path)
             
             
@@ -169,7 +172,6 @@ class Learner(object):
 #                _x, _y = elastic_transform(x[0], y[0], 100, 20)
 #                x_train.append(_x.reshape((1,) + _x.shape))
 #                y_train.append(_y.reshape((1,) + _y.shape))
-            
             #flip x
             x_train.append(flip_axis(x, 2))
             y_train.append(flip_axis(y, 2))
@@ -198,11 +200,15 @@ class Learner(object):
         
     def fit(self, x_train, y_train, x_valid, y_valid, pretrained_path):
         print('Creating and compiling and fitting model...')
+        x_train = x_train.transpose((0, 2, 3, 1))
+        y_train = y_train.transpose((0, 2, 3, 1))
+        x_valid = x_valid.transpose((0, 2, 3, 1))
+        y_valid = y_valid.transpose((0, 2, 3, 1))
         print('Shape:', x_train.shape)
         #second output
-        y_train_2 = self.get_object_existance(y_train)
-        y_valid_2 = self.get_object_existance(y_valid)
-
+        y_train_2 = self.get_object_existance(y_train) # (22540,) 
+        y_valid_2 = self.get_object_existance(y_valid) # (1127,)
+        
         #load model
         optimizer = Adam(lr=0.0045)
         model = self.model_func(optimizer)
@@ -227,22 +233,22 @@ class Learner(object):
     def train_and_predict(self, pretrained_path=None, split_random=True):
         self._dir_init()
         print('Loading and preprocessing and standarize train data...')
-        imgs_train, imgs_mask_train = load_train_data()
+        imgs_train, imgs_mask_train = load_train_data() # (5635, 1, 420, 580) (5635, 1, 420, 580)
         
-        imgs_train = preprocess(imgs_train)
+        imgs_train = preprocess(imgs_train) # (5635, 1, 80, 112)
 
-        imgs_mask_train = preprocess(imgs_mask_train)
+        imgs_mask_train = preprocess(imgs_mask_train) # (5635, 1, 80, 112)
         
-        imgs_mask_train = self.norm_mask(imgs_mask_train)
+        imgs_mask_train = self.norm_mask(imgs_mask_train) # (5635, 1, 80, 112)
 
         split_func = split_random and self.split_train_and_valid or self.split_train_and_valid_by_patient
         (x_train, y_train), (x_valid, y_valid) = split_func(imgs_train, imgs_mask_train,
                                                         validation_split=self.validation_split)
         self._init_mean_std(x_train)
-        x_train = self.standartize(x_train, True)
+        x_train = self.standartize(x_train, True) # (5635, 1, 80, 112)
         x_valid = self.standartize(x_valid, True)
         #augmentation
-        x_train, y_train = self.augmentation(x_train, y_train)
+        x_train, y_train = self.augmentation(x_train, y_train) # (22540, 1, 80, 112)
         #fit
         model = self.fit(x_train, y_train, x_valid, y_valid, pretrained_path)
         #test
@@ -258,7 +264,7 @@ def main():
     split_random = options.split_random
     model_name = options.model_name
     if model_name is None:
-        raise ValueError, 'model_name is not defined'
+        raise ValueError('model_name is not defined')
     #
     import imp
     model_ = imp.load_source('model_', model_name + '.py')
