@@ -13,6 +13,7 @@ def mean_length_error(y_true, y_pred):
 def dice_coef(y_true, y_pred):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
+    print('y_true and y_pred: ', y_true_f.shape, y_pred_f.shape)
     intersection = K.sum(y_true_f * y_pred_f)
     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 

@@ -6,7 +6,6 @@ import numpy as np
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.preprocessing.image import flip_axis, random_channel_shift
-from keras.engine.training import _slice_arrays
 from keras_plus import LearningRateDecay
 from u_model import get_unet, IMG_COLS as img_cols, IMG_ROWS as img_rows
 from data import load_train_data, load_test_data, load_patient_num
@@ -23,7 +22,6 @@ def preprocess(imgs, to_rows=None, to_cols=None):
     imgs_p = np.ndarray((imgs.shape[0], imgs.shape[1], to_rows, to_cols), dtype=np.uint8)
     for i in range(imgs.shape[0]):
         imgs_p[i, 0] = resize(imgs[i, 0], (to_rows, to_cols), preserve_range=True)
-    # imgs_p = imgs_p[..., np.newaxis]
     return imgs_p
 
 
@@ -141,6 +139,7 @@ class Learner(object):
         imgs_test = load_test_data()
         imgs_test = preprocess(imgs_test)
         imgs_test = self.standartize(imgs_test, to_float=True)
+        imgs_test = imgs_test.transpose((0, 2, 3, 1))
     
         print('Loading best saved weights...')
         model.load_weights(self.best_weight_path)
