@@ -199,15 +199,16 @@ class Learner(object):
         
     def fit(self, x_train, y_train, x_valid, y_valid, pretrained_path):
         print('Creating and compiling and fitting model...')
+        print('Shape:', x_train.shape)
+        #second output
+        y_train_2 = self.get_object_existance(y_train) # (22540,)
+        y_valid_2 = self.get_object_existance(y_valid) # (1127,)
+
         x_train = x_train.transpose((0, 2, 3, 1))
         y_train = y_train.transpose((0, 2, 3, 1))
         x_valid = x_valid.transpose((0, 2, 3, 1))
         y_valid = y_valid.transpose((0, 2, 3, 1))
-        print('Shape:', x_train.shape)
-        #second output
-        y_train_2 = self.get_object_existance(y_train) # (22540,) 
-        y_valid_2 = self.get_object_existance(y_valid) # (1127,)
-        
+
         #load model
         optimizer = Adam(lr=0.0045)
         model = self.model_func(optimizer)
@@ -233,7 +234,7 @@ class Learner(object):
         self._dir_init()
         print('Loading and preprocessing and standarize train data...')
         imgs_train, imgs_mask_train = load_train_data() # (5635, 1, 420, 580) (5635, 1, 420, 580)
-        
+        test_data = self.get_object_existance(imgs_mask_train)
         imgs_train = preprocess(imgs_train) # (5635, 1, 80, 112)
 
         imgs_mask_train = preprocess(imgs_mask_train) # (5635, 1, 80, 112)
@@ -275,3 +276,35 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+    # - loss: -0.2651 - main_output_loss: -0.3495 - aux_output_loss: 0.1689 - main_ou
+    # tput_dice_coef: 0.3495 - aux_output_acc: 0.9970 - val_loss: -0.3890 - val_main_output_loss: -0.3900 - val_aux_output_loss: 0.0020 -
+    # val_main_output_dice_coef: 0.3900 - val_aux_output_acc: 1.0000
+
+    #
+    # 22540 / 22540[ == == == == == == == == == == == == == == ==] - 646
+    # s - loss: -0.6282 - main_output_loss: -0.6284 - aux_output_loss: 3.5119e-04 - main
+    # _output_dice_coef: 0.6284 - aux_output_acc: 1.0000 - val_loss: -0.6305 - val_main_output_loss: -0.6305 - val_aux_output_loss: 1.8125
+    # e - 05 - val_main_output_dice_coef: 0.6305 - val_aux_output_acc: 1.0000
+    # Epoch
+    # 00032: early
+    # stopping
+    # Loading and pre - processing
+    # test
+    # data...
+    # Loading
+    # test
+    # data
+    # from / notebooks / notebooks / kaggle / ultrasound - nerve - segmentation / np_data / imgs_test.npy
+    # Loading
+    # best
+    # saved
+    # weights...
+    # Predicting
+    # masks
+    # on
+    # test
+    # data and saving...
+    # 5508 / 5508[ == == == == == == == == == == == == == == ==] - 86
+    # s
+
+
