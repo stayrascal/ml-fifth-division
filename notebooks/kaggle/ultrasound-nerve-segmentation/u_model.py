@@ -4,7 +4,7 @@ from keras.models import Model
 from keras.layers import Input, merge, Conv2D, MaxPooling2D, UpSampling2D, Dense
 from keras.layers import BatchNormalization, Dropout, Flatten, Lambda
 from keras.layers.advanced_activations import ELU, LeakyReLU
-from metric import np_dice_coef, np_dice_coef_loss
+from metric import dice_coef, dice_coef_loss
 
 IMG_ROWS, IMG_COLS = 80, 112 
 
@@ -171,8 +171,8 @@ def get_unet_inception_2head(optimizer):
 
     model = Model(input=inputs, output=[conv10, aux_out])
     model.compile(optimizer=optimizer,
-                  loss={'main_output': np_dice_coef_loss, 'aux_output': 'binary_crossentropy'},
-                  metrics={'main_output': np_dice_coef, 'aux_output': 'acc'},
+                  loss={'main_output': dice_coef_loss, 'aux_output': 'binary_crossentropy'},
+                  metrics={'main_output': dice_coef, 'aux_output': 'acc'},
                   loss_weights={'main_output': 1., 'aux_output': 0.5})
 
     return model
