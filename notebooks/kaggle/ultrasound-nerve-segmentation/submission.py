@@ -31,18 +31,21 @@ def submission():
     imgs_id_test = load_test_ids()
     
     print ('Loading test_mask_res from %s' % Learner.test_mask_res)
-    imgs_test = np.load(Learner.test_mask_res)
+    imgs_test = np.load(Learner.test_mask_res) # 5508 x 80 x 112 x 1
     print ('Loading imgs_exist_test from %s' % Learner.test_mask_exist_res)
-    imgs_exist_test = np.load(Learner.test_mask_exist_res)
+    imgs_exist_test = np.load(Learner.test_mask_exist_res) # 5508 x 1
 
     argsort = np.argsort(imgs_id_test)
     imgs_id_test = imgs_id_test[argsort]
     imgs_test = imgs_test[argsort]
     imgs_exist_test = imgs_exist_test[argsort]
-
+    
+    imgs_test = imgs_test.transpose((0, 3, 1, 2))
+    
     total = imgs_test.shape[0]
     ids = []
     rles = []
+
     for i in range(total):
         img = imgs_test[i, 0]
         img_exist = imgs_exist_test[i]
