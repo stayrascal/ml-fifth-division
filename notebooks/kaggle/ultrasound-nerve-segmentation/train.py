@@ -230,11 +230,20 @@ class Learner(object):
         #augment
         return model
 
+    def filter_noise_data(self, imgs, imgs_mask):
+        test_data = self.get_object_existance(imgs_mask)
+        indexs = np.where(test_data > 0)
+        return imgs[indexs], imgs_mask[indexs]
+
     def train_and_predict(self, pretrained_path=None, split_random=True):
         self._dir_init()
         print('Loading and preprocessing and standarize train data...')
         imgs_train, imgs_mask_train = load_train_data() # (5635, 1, 420, 580) (5635, 1, 420, 580)
-        test_data = self.get_object_existance(imgs_mask_train)
+
+        imgs_train, imgs_mask_train = self.filter_noise_data(imgs_train, imgs_mask_train)  # (5635, 1, 420, 580) (5635, 1, 420, 580)
+        print('Img Shape: ', imgs_train.shape)
+
+
         imgs_train = preprocess(imgs_train) # (5635, 1, 80, 112)
 
         imgs_mask_train = preprocess(imgs_mask_train) # (5635, 1, 80, 112)

@@ -1,7 +1,7 @@
 import sys
 from keras import layers
 from keras.models import Model
-from keras.layers import Input, merge, Conv2D, MaxPooling2D, UpSampling2D, Dense
+from keras.layers import Input, concatenate, Conv2D, MaxPooling2D, UpSampling2D, Dense
 from keras.layers import BatchNormalization, Dropout, Flatten, Lambda
 from keras.layers.advanced_activations import ELU, LeakyReLU
 from metric import dice_coef, dice_coef_loss
@@ -22,7 +22,7 @@ def _shortcut(_input, residual):
                       padding="valid",
                       kernel_initializer="he_normal")(_input)
 
-    return layers.concatenate([shortcut, residual], axis=3)
+    return concatenate([shortcut, residual], axis=3)
 
 
 def inception_block(inputs, depth, splitted=False, activation='relu'):
@@ -54,7 +54,7 @@ def inception_block(inputs, depth, splitted=False, activation='relu'):
     p4_1 = MaxPooling2D(pool_size=(3, 3), strides=(1, 1), padding="same")(inputs)
     c4_2 = Conv2D(depth//8, (1, 1), padding='same', kernel_initializer='he_normal')(p4_1)
 
-    res = layers.concatenate([c1_1, c2_3, c3_3, c4_2], axis=3)
+    res = concatenate([c1_1, c2_3, c3_3, c4_2], axis=3)
     res = BatchNormalization(axis=1)(res)
     res = actv()(res)
     return res
@@ -91,7 +91,7 @@ def reduction_a(inputs, k=64, l=64, m=96, n=96):
     conv3_2 = NConv2D(kernel_size=(3, 3), filters=l, strides=(1, 1), padding='same')(conv3_1)
     conv3_2 = Conv2D(kernel_size=(3, 3), filters=m, strides=(2,2), padding='same')(conv3_2)
     
-    res = layers.concatenate([pool1, conv2, conv3_2], concat_axis=1)
+    res = concatenate([pool1, conv2, conv3_2], concat_axis=1)
     return res
 
 
@@ -110,7 +110,7 @@ def reduction_b(inputs):
     conv4_2 = NConv2D(kernel_size=(3, 3), filters=72, strides=(1, 1), padding='same')(conv4_1)
     conv4_3 = Conv2D(kernel_size=(3, 3), filters=80,  strides=(2,2), padding='same')(conv4_2)
     #
-    res = layers.concatenate([pool1, conv2_2, conv3_2, conv4_3], axis=1)
+    res = concatenate([pool1, conv2_2, conv3_2, conv4_3], axis=1)
     return res
     
     
@@ -148,22 +148,22 @@ def get_unet_inception_2head(optimizer):
     #
     
     after_conv4 = rblock(conv4, 1, 256) # (?, 10, 14, 512)
-    up6 = layers.concatenate([UpSampling2D(size=(2, 2))(conv5), after_conv4], axis=3) # (?, 10, 14, 1024)
+    up6 = concatenate([UpSampling2D(size=(2, 2))(conv5), after_conv4], axis=3) # (?, 10, 14, 1024)
     conv6 = inception_block(up6, 256, splitted=splitted, activation=act)  # (?, 10, 14, 256)
     conv6 = Dropout(0.5)(conv6)
     
     after_conv3 = rblock(conv3, 1, 128) # 20 x 28 x 256
-    up7 = layers.concatenate([UpSampling2D(size=(2, 2))(conv6), after_conv3], axis=3) # (?, 20, 28, 512)
+    up7 = concatenate([UpSampling2D(size=(2, 2))(conv6), after_conv3], axis=3) # (?, 20, 28, 512)
     conv7 = inception_block(up7, 128, splitted=splitted, activation=act)  # (?, 20, 28, 128)
     conv7 = Dropout(0.5)(conv7)
     
     after_conv2 = rblock(conv2, 1, 64) # 40 x 56 x 128
-    up8 = layers.concatenate([UpSampling2D(size=(2, 2))(conv7), after_conv2], axis=3) # (?, 40, 56, 256)
+    up8 = concatenate([UpSampling2D(size=(2, 2))(conv7), after_conv2], axis=3) # (?, 40, 56, 256)
     conv8 = inception_block(up8, 64, splitted=splitted, activation=act)  # (?, 40, 56, 64)
     conv8 = Dropout(0.5)(conv8)
     
     after_conv1 = rblock(conv1, 1, 32) # 80 x 112 x 64 
-    up9 = layers.concatenate([UpSampling2D(size=(2, 2))(conv8), after_conv1], axis=3) # (?, 80, 112, 128)
+    up9 = concatenate([UpSampling2D(size=(2, 2))(conv8), after_conv1], axis=3) # (?, 80, 112, 128)
     conv9 = inception_block(up9, 32, splitted=splitted, activation=act)  # (?, 80, 112, 32)
     conv9 = Dropout(0.5)(conv9)
 
