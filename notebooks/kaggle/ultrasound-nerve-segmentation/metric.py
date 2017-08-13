@@ -25,6 +25,8 @@ def np_dice_coef(y_true, y_pred):
     pr = y_pred.flatten()
     return (2. * np.sum(tr * pr) + smooth) / (np.sum(tr) + np.sum(pr) + smooth)
 
+def np_dice_coef_loss(y_true, y_pred):
+    return -np_dice_coef(y_true, y_pred)
 
 def main():
     a = np.random.random((420,100))

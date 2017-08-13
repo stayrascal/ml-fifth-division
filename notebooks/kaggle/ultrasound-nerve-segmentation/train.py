@@ -307,4 +307,30 @@ if __name__ == '__main__':
     # 5508 / 5508[ == == == == == == == == == == == == == == ==] - 86
     # s
 
+    # 646
+    # s - loss: -0.6211 - main_output_loss: -0.6213 - aux_output_loss: 4.9209e-04 - main
+    # _output_dice_coef: 0.6213 - aux_output_acc: 1.0000 - val_loss: -0.5926 - val_main_output_loss: -0.5926 - val_aux_output_loss: 3.2229
+    # e - 05 - val_main_output_dice_coef: 0.5926 - val_aux_output_acc: 1.0000
+    # Epoch
+    # 00023: early
+    # stopping
+    # Loading and pre - processing
+    # test
+    # data...
+    # Loading
+    # test
+    # data
+    # from / notebooks / notebooks / kaggle / ultrasound - nerve - segmentation / np_data / imgs_test.npy
+    # Loading
+    # best
+    # saved
+    # weights...
+    # Predicting
+    # masks
+    # on
+    # test
+    # data and saving...
+    # 5508 / 5508[ == == == == == == == == == == == == == == ==] - 86
+    # s
+
 
