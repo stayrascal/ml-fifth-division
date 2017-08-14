@@ -240,8 +240,8 @@ class Learner(object):
         print('Loading and preprocessing and standarize train data...')
         imgs_train, imgs_mask_train = load_train_data() # (5635, 1, 420, 580) (5635, 1, 420, 580)
 
-        imgs_train, imgs_mask_train = self.filter_noise_data(imgs_train, imgs_mask_train)  # (5635, 1, 420, 580) (5635, 1, 420, 580)
-        print('Img Shape: ', imgs_train.shape)
+        # imgs_train, imgs_mask_train = self.filter_noise_data(imgs_train, imgs_mask_train)  # (5635, 1, 420, 580) (5635, 1, 420, 580)
+        # print('Img Shape: ', imgs_train.shape)
 
 
         imgs_train = preprocess(imgs_train) # (5635, 1, 80, 112)
